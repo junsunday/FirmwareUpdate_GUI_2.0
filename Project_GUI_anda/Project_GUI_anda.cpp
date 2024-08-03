@@ -166,8 +166,6 @@ void FirmwareGUI::Ondownload_breath(wxCommandEvent& event)
 		wxLogError("can not access");
 		return;
 	}
-	
-
 	wxInputStream* InStream = url.GetInputStream();
 	if (!InStream)
 	{
@@ -201,6 +199,7 @@ void FirmwareGUI::Download_breath(int n,const char command[])
 	socket->Connect(addr);
 	//发送指令command
 	socket->Write(command, sizeof(command));
+	
 	char buf[2040] = { 0 };
 	socket->Read(buf, sizeof(buf));
 	socket->Destroy();
@@ -255,22 +254,22 @@ void FirmwareGUI::OnradioChoiseVersion_breath(wxCommandEvent& event)
 	
 	case 1:	
 		//请求下载固件
-		Download_breath(1, "1.0.bin");
+		Download_breath(1, "breath_1.0.bin");
 		wxMessageBox(wxT("this is 1.0 and done!"), wxT("breath固件"), wxOK | wxICON_INFORMATION, this);
 		break;
 	case 2:
 		//请求下载固件
-		Download_breath(2, "2.0.bin");
+		Download_breath(2, "breath_2.0.bin");
 		wxMessageBox(wxT("this is 2.0 and done!"), wxT("breath固件"), wxOK | wxICON_INFORMATION, this);
 		break;
 	case 3:
 		//请求下载固件
-		Download_breath(3, "3.0.bin");
+		Download_breath(3, "breath_3.0.bin");
 		wxMessageBox(wxT("this is 3.0 and done!"), wxT("breath固件"), wxOK | wxICON_INFORMATION, this);
 		break;
 	case 4:
 		//请求下载固件
-		Download_breath(4, "4.0.bin");
+		Download_breath(4, "breath_4.0.bin");
 		wxMessageBox(wxT("this is 4.0 and done!"), wxT("breath固件"), wxOK | wxICON_INFORMATION, this);
 		break;
 	default:
@@ -319,22 +318,22 @@ void FirmwareGUI::OnradioChoiseVersion_human(wxCommandEvent& event)
 		
 	case 1:
 		//请求下载固件
-		Download_breath(1, "height_1.0.bin");
+		Download_breath(1, "human_1.0.bin");
 		wxMessageBox(wxT("this is 1.0 and done!"), wxT("human固件"), wxOK | wxICON_INFORMATION, this);
 		break;
 	case 2:
 		//请求下载固件
-		Download_breath(2, "height_2.0.bin");
+		Download_breath(2, "human_2.0.bin");
 		wxMessageBox(wxT("this is 2.0 and done!"), wxT("human固件"), wxOK | wxICON_INFORMATION, this);
 		break;
 	case 3:
 		//请求下载固件
-		Download_breath(3, "height_3.0.bin");
+		Download_breath(3, "human_3.0.bin");
 		wxMessageBox(wxT("this is 3.0 and done!"), wxT("human固件"), wxOK | wxICON_INFORMATION, this);
 		break;
 	case 4:
 		//请求下载固件
-		Download_breath(4, "height_4.0.bin");
+		Download_breath(4, "human_4.0.bin");
 		wxMessageBox(wxT("this is 4.0 and done!"), wxT("human固件"), wxOK | wxICON_INFORMATION, this);
 		break;
 	default :
@@ -400,7 +399,7 @@ void FirmwareGUI::OnserachCurrent(wxCommandEvent& event)
 {
 	//调用串口通信下位机
 
-	wxString Version_current = "1.2.Bin";
+	wxString Version_current = "human_1.2.Bin";
 	wxMessageBox(Version_current, "Firmware Current", wxOK | wxICON_INFORMATION, this);
 	m_textCtrl->SetValue("当前版本：");
 	m_textCtrl->AppendText(Version_current);
@@ -437,18 +436,26 @@ void FirmwareGUI::QueryFirmwareVersion(wxCommandEvent& event)
 	addr.Service(36026); // 替换为服务器的端口号
 
 	wxSocketClient* socket = new wxSocketClient();
+	//设置socket事件——————————————————
+
 	socket->SetEventHandler(*this, wxID_ANY);
 	socket->SetNotify(wxSOCKET_CONNECTION_FLAG | wxSOCKET_INPUT_FLAG | wxSOCKET_LOST_FLAG);
 	socket->Notify(true);
-
+	//——————————————————————————
 	socket->Connect(addr);
 	socket->Write("QueryFirmwareVersion", sizeof("QueryFirmwareVersion"));
+	
 	char buf[2040] = {0};
 	socket->Read(buf, sizeof(buf));
 	socket->Destroy();
 	//wxString test(buf);
 	//wxMessageBox(test);
 	std::string wxTostdData(buf);
+	if (wxTostdData.empty())
+	{
+		wxLogError("Fail connect Server!");
+		return;
+	}
 	//——————————————————————————————————————————
 	
     //std::ifstream file("abc.txt");
