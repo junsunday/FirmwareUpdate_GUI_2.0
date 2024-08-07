@@ -8,6 +8,9 @@
 #include <fstream>
 #include <string>
 
+//------------TCP协议(IP & PORT)--------------
+#define IP  "9tv5583978sv.vicp.fun"//"192.168.10.8"//"8.135.10.183"
+#define PROT 30087//1111//30142
 
 int CountNonemptyStrings(wxString array[],int size);
 enum
@@ -43,7 +46,7 @@ private:
 	wxPanel* m_panel_load;
 	
 	//Dialog Path
-	wxDialog* ChoiseDialog;
+	//wxDialog* ChoiseDialog;
 	//Network path
 	virtual void OnradioChoiseVersion_breath(wxCommandEvent& event);
 	virtual void OnradioChoiseVersion_height(wxCommandEvent& event);
@@ -188,8 +191,8 @@ void FirmwareGUI::Download_breath(int n,const char command[])
 {
 	//--------------------TCP协议---------------------------
 	wxIPV4address addr;
-	addr.Hostname("8.135.10.183 "); // 替换为服务器的IP地址
-	addr.Service(36026); // 替换为服务器的端口号
+	addr.Hostname(IP); // 替换为服务器的IP地址
+	addr.Service(PROT); // 替换为服务器的端口号
 
 	wxSocketClient* socket = new wxSocketClient();
 	//socket->SetEventHandler(*this, wxID_ANY);
@@ -254,22 +257,22 @@ void FirmwareGUI::OnradioChoiseVersion_breath(wxCommandEvent& event)
 	
 	case 1:	
 		//请求下载固件
-		Download_breath(1, "breath_1.0.bin");
+		Download_breath(1, "breath_1_0_bin");
 		wxMessageBox(wxT("this is 1.0 and done!"), wxT("breath固件"), wxOK | wxICON_INFORMATION, this);
 		break;
 	case 2:
 		//请求下载固件
-		Download_breath(2, "breath_2.0.bin");
+		Download_breath(2, "breath_2_0_bin");
 		wxMessageBox(wxT("this is 2.0 and done!"), wxT("breath固件"), wxOK | wxICON_INFORMATION, this);
 		break;
 	case 3:
 		//请求下载固件
-		Download_breath(3, "breath_3.0.bin");
+		Download_breath(3, "breath_3_0_bin");
 		wxMessageBox(wxT("this is 3.0 and done!"), wxT("breath固件"), wxOK | wxICON_INFORMATION, this);
 		break;
 	case 4:
 		//请求下载固件
-		Download_breath(4, "breath_4.0.bin");
+		Download_breath(4, "breath_4_0_bin");
 		wxMessageBox(wxT("this is 4.0 and done!"), wxT("breath固件"), wxOK | wxICON_INFORMATION, this);
 		break;
 	default:
@@ -286,22 +289,22 @@ void FirmwareGUI::OnradioChoiseVersion_height(wxCommandEvent& event)
 	
 	case 1:
 		//请求下载固件
-		Download_breath(1, "height_1.0.bin");
+		Download_breath(1, "height_1_0_bin");
 		wxMessageBox(wxT("this is 1.0 and done!"), wxT("height固件"), wxOK | wxICON_INFORMATION, this);
 		break;
 	case 2:
 		//请求下载固件
-		Download_breath(2, "height_2.0.bin");
+		Download_breath(2, "height_2_0_bin");
 		wxMessageBox(wxT("this is 2.0 and done!"), wxT("height固件"), wxOK | wxICON_INFORMATION, this);
 		break;
 	case 3:
 		//请求下载固件
-		Download_breath(3, "height_3.0.bin");
+		Download_breath(3, "height_3_0_bin");
 		wxMessageBox(wxT("this is 3.0 and done!"), wxT("height固件"), wxOK | wxICON_INFORMATION, this);
 		break;
 	case 4:
 		//请求下载固件
-		Download_breath(4, "height_4.0.bin");
+		Download_breath(4, "height_4_0_bin");
 		wxMessageBox(wxT("this is 4.0 and done!"), wxT("height固件"), wxOK | wxICON_INFORMATION, this);
 		break;
 	default:
@@ -318,22 +321,22 @@ void FirmwareGUI::OnradioChoiseVersion_human(wxCommandEvent& event)
 		
 	case 1:
 		//请求下载固件
-		Download_breath(1, "human_1.0.bin");
+		Download_breath(1, "human_1_0_bin");
 		wxMessageBox(wxT("this is 1.0 and done!"), wxT("human固件"), wxOK | wxICON_INFORMATION, this);
 		break;
 	case 2:
 		//请求下载固件
-		Download_breath(2, "human_2.0.bin");
+		Download_breath(2, "human_2_0_bin");
 		wxMessageBox(wxT("this is 2.0 and done!"), wxT("human固件"), wxOK | wxICON_INFORMATION, this);
 		break;
 	case 3:
 		//请求下载固件
-		Download_breath(3, "human_3.0.bin");
+		Download_breath(3, "human_3_0_bin");
 		wxMessageBox(wxT("this is 3.0 and done!"), wxT("human固件"), wxOK | wxICON_INFORMATION, this);
 		break;
 	case 4:
 		//请求下载固件
-		Download_breath(4, "human_4.0.bin");
+		Download_breath(4, "human_4_0_bin");
 		wxMessageBox(wxT("this is 4.0 and done!"), wxT("human固件"), wxOK | wxICON_INFORMATION, this);
 		break;
 	default :
@@ -344,13 +347,13 @@ void FirmwareGUI::OnradioChoiseVersion_human(wxCommandEvent& event)
 }
 void FirmwareGUI::Onyes_dialog(wxCommandEvent& event)
 {
-	ChoiseDialog->Destroy();
+	//ChoiseDialog->Destroy();
+	
 	wxMessageBox(" Quit", "Firmware Search", wxOK | wxICON_INFORMATION, this);
 	event.Skip();
 }
 void FirmwareGUI::Oncancel_dialog(wxCommandEvent& event)
 {
-	ChoiseDialog->Destroy();
 	wxMessageBox(" Quit", "Firmware Search", wxOK | wxICON_INFORMATION, this);
 	event.Skip();
 }
@@ -409,54 +412,59 @@ void FirmwareGUI::OnserachCurrent(wxCommandEvent& event)
 void FirmwareGUI::QueryFirmwareVersion(wxCommandEvent& event)
 {
 //	  //-----------------------Http-------------------------------
- //   wxURL url("http://....");
- //   if (url.GetError() != wxURL_NOERR)
- //   {
- //       wxLogError("can not access");
- //       return;
- //   }
- //   wxInputStream* InStream = url.GetInputStream();
- //   if (!InStream)
- //   {
- //       wxLogError("Failed to connect server!\nPlease check your network connection!");
- //       return;
- //   }
- //   //接受缓存
- //   wxString wxReceiData;
- //   char Buffer[1024];
- //   while (! InStream->Read(Buffer, sizeof(Buffer)))
- //   {
- //       wxReceiData += wxString(Buffer, InStream->LastRead());
- //   }
-	//std::string wxTostdData = wxReceiData.ToStdString();
+    wxURL url("http://9tv5583978sv.vicp.fun.com");
+    if (url.GetError() != wxURL_NOERR)
+    {
+        wxLogError("can not access");
+        return;
+    }
+    wxInputStream* InStream = url.GetInputStream();
+    if (!InStream)
+    {
+        wxLogError("Failed to connect server!\nPlease check your network connection!");
+        return;
+    }
+    //接受缓存
+    wxString wxReceiData;
+    char Buffer[1024];
+    while (! InStream->Read(Buffer, sizeof(Buffer)))
+    {
+        wxReceiData += wxString(Buffer, InStream->LastRead());
+    }
+	std::string wxTostdData = wxReceiData.ToStdString();
 
-	//--------------------TCP协议---------------------------
-	wxIPV4address addr;
-	addr.Hostname("8.135.10.183 "); // 替换为服务器的IP地址
-	addr.Service(36026); // 替换为服务器的端口号
+	////--------------------TCP协议---------------------------
+	//wxIPV4address addr;
+	//addr.Hostname(IP); // 替换为服务器的IP地址
+	//addr.Service(PROT); // 替换为服务器的端口号
 
-	wxSocketClient* socket = new wxSocketClient();
-	//设置socket事件——————————————————
-
-	socket->SetEventHandler(*this, wxID_ANY);
-	socket->SetNotify(wxSOCKET_CONNECTION_FLAG | wxSOCKET_INPUT_FLAG | wxSOCKET_LOST_FLAG);
-	socket->Notify(true);
-	//——————————————————————————
-	socket->Connect(addr);
-	socket->Write("QueryFirmwareVersion", sizeof("QueryFirmwareVersion"));
-	
-	char buf[2040] = {0};
-	socket->Read(buf, sizeof(buf));
-	socket->Destroy();
-	//wxString test(buf);
-	//wxMessageBox(test);
-	std::string wxTostdData(buf);
-	if (wxTostdData.empty())
-	{
-		wxLogError("Fail connect Server!");
-		return;
-	}
-	//——————————————————————————————————————————
+	//wxSocketClient* socket = new wxSocketClient();
+	////———————设置socket事件————————————
+	//socket->SetEventHandler(*this, wxID_ANY);
+	//socket->SetNotify(wxSOCKET_CONNECTION_FLAG | wxSOCKET_INPUT_FLAG | wxSOCKET_LOST_FLAG);
+	//socket->Notify(true);
+	////—————————-----——————————————
+	//if (!socket->Connect(addr))
+	//{
+	//	wxLogError("Fail Connect Server!\nPlease Check out addr!");
+	//	delete socket;
+	//	return;
+	//}
+	////---------------发送请求命令-------------------------
+	//socket->Write("QueryFirmwareVersion", sizeof("QueryFirmwareVersion"));
+	//
+	//char buf[2040] = {0};
+	//socket->Read(buf, sizeof(buf));
+	//socket->Destroy();
+	////wxString test(buf);
+	////wxMessageBox(test);
+	//std::string wxTostdData(buf);
+	//if (wxTostdData.empty())
+	//{
+	//	wxLogError("Fail receive data!");
+	//	return;
+	//}
+	////——————————————————————————————————————————
 	
     //std::ifstream file("abc.txt");
     //if (!file.is_open())
@@ -470,10 +478,11 @@ void FirmwareGUI::QueryFirmwareVersion(wxCommandEvent& event)
     //    filedata += c;
     //}
     //file.close();
-
+	//------------------解析Json数据------------------------
     std::string str = "praise";
     neb::CJsonObject Ojson;
 	//if (Ojson.Parse(filedata))
+		
 	if (Ojson.Parse(wxTostdData))
 	{
 		/*
@@ -487,8 +496,9 @@ void FirmwareGUI::QueryFirmwareVersion(wxCommandEvent& event)
 		*/
 		//str = Ojson.ToString();
 		//wxMessageBox(str);
-		int num_out = 3;
-		std::string funcName[3] = { "breath","height","human"};
+		//————————雷达功能种类——————————
+		const int num_out = 3;
+		std::string funcName[num_out] = { "breath","height","human"};
 		
 		for (int i = 0;i < num_out; i++) 
 		{
@@ -519,16 +529,18 @@ void FirmwareGUI::QueryFirmwareVersion(wxCommandEvent& event)
         wxMessageBox("failed to parse Json data!");
 		return;
     }
-	//创建查询对话框
-	ChoiseDialog = new wxDialog(NULL, wxID_ANY, "Choises", wxDefaultPosition, wxSize(480,385), wxDEFAULT_DIALOG_STYLE);
-	wxPanel* ChoisePanel = new wxPanel(ChoiseDialog);
-	Sizer_network(ChoiseDialog, m_radioBox_breathChoices, m_radioBox_heightChoices, m_radioBox_humanChoices);
+	//------------------------创建查询对话框----------------------------------------------- 
+	//ChoiseDialog = new wxDialog(NULL, wxID_ANY, "Choises", wxDefaultPosition, wxSize(480,385), wxDEFAULT_DIALOG_STYLE);
+	wxDialog ChoiseDialog(NULL, wxID_ANY, "Choises", wxDefaultPosition, wxSize(480, 385), wxDEFAULT_DIALOG_STYLE);
+	wxPanel* ChoisePanel = new wxPanel(&ChoiseDialog);
+	Sizer_network(&ChoiseDialog, m_radioBox_breathChoices, m_radioBox_heightChoices, m_radioBox_humanChoices);
 	//dialog退出判断（showModal（）：自动调用destroy（））
-	if (ChoiseDialog->ShowModal() == wxID_CANCEL)
+
+	if (ChoiseDialog.ShowModal() == wxID_CANCEL || ChoiseDialog.ShowModal() == wxID_OK)
 	{
-		;//wxMessageBox(" Succeful", "Firmware Download", wxOK | wxICON_INFORMATION, this);
+		delete ChoisePanel;
+		wxMessageBox(" Succeful", "Firmware Download", wxOK | wxICON_INFORMATION, this);
 	}
-	
 	event.Skip();
 }
 
