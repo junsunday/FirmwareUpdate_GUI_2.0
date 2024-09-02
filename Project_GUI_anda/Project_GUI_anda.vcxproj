@@ -115,6 +115,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>D:\Visual_Studio2022\wxwidgetsLib\wxWidgets-3.2.5\lib\vc_x64_lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Setupapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -138,10 +139,12 @@
     <ClCompile Include="cJSON.c" />
     <ClCompile Include="cJSON_Utils.c" />
     <ClCompile Include="Project_GUI_anda.cpp" />
+    <ClCompile Include="serialib.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="cJSON.h" />
     <ClInclude Include="cJSON_Utils.h" />
+    <ClInclude Include="serialib.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\test.json" />
