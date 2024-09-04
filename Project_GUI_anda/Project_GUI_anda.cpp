@@ -1,11 +1,13 @@
-﻿#include <wx/wx.h>
+﻿
+#include "httplib.h"
+#include <wx/wx.h>
 #include <wx/url.h>
 #include <wx/listbook.h>
 #include <wx/wrapsizer.h>
 #include <wx/socket.h>
 #include <iostream>
 #include <serialib.h>
-#include <cJSON.h>
+#include "cJSON.h"
 #include <fstream>
 #include <string>
 #include <vector>
@@ -80,7 +82,7 @@ private:
 	virtual void OnradioChoiseVersion_human(wxCommandEvent& event);
 	virtual void Oncancel_dialog(wxCommandEvent& event);
 	virtual void Onyes_dialog(wxCommandEvent& event);
-	void Download(int n,const char* command);
+	void Download(int n,const std::string& command);
 	int CountNonemptyStrings(wxString array[], int size);
 
 	//wxRadioBox* m_radioBox_breath;
@@ -133,7 +135,7 @@ FirmwareGUI::FirmwareGUI(const wxString& title) : wxFrame(NULL, wxID_ANY, title,
 	
 	wxButton* serachbutton;
 	serachbutton = new wxButton(m_panel_network, wxID_ANY, _("查询"), wxDefaultPosition, wxDefaultSize, 0);
-	Connect(serachbutton->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(FirmwareGUI::QueryFirmwareVersion));
+	Connect(serachbutton->GetId(), wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(FirmwareGUI::QueryFirmwareVersion_http));
 	m_panel_network->Layout();
 	m_listbook1->AddPage(m_panel_network, _("查询网络固件版本"), true);
 
@@ -213,62 +215,99 @@ void FirmwareGUI::Ondownload_breath(wxCommandEvent& event)
 	
 	wxMessageBox("ok", "获取breath", wxID_OK, this);  
 }
-void FirmwareGUI::Download(int n,const char* command)
+void FirmwareGUI::Download(int n,const std::string& command)
 {
-	//--------------------TCP协议---------------------------
-	wxIPV4address addr;
-	addr.Hostname(IP); // 替换为服务器的IP地址
-	addr.Service(PROT); // 替换为服务器的端口号
+	////--------------------TCP协议---------------------------
+	//wxIPV4address addr;
+	//addr.Hostname(IP); // 替换为服务器的IP地址
+	//addr.Service(PROT); // 替换为服务器的端口号
 
-	wxSocketClient* socket = new wxSocketClient();
-	//socket->SetEventHandler(*this, wxID_ANY);
-	socket->SetNotify(wxSOCKET_CONNECTION_FLAG | wxSOCKET_INPUT_FLAG | wxSOCKET_LOST_FLAG);
-	socket->Notify(true);
+	//wxSocketClient* socket = new wxSocketClient();
+	////socket->SetEventHandler(*this, wxID_ANY);
+	//socket->SetNotify(wxSOCKET_CONNECTION_FLAG | wxSOCKET_INPUT_FLAG | wxSOCKET_LOST_FLAG);
+	//socket->Notify(true);
 
-	socket->Connect(addr);
-	//发送指令command
-	socket->Write(command, strlen(command));
-	
-	char buf[2040] = { 0 };
-	socket->Read(buf, sizeof(buf));
-	socket->Destroy();
-	//wxString test(buf);
-	//wxMessageBox(test);
-	std::string wxTostdData(buf);
-	//——————————————————————————————————————————
-	////-------------打开文件夹----------
-    // 弹出保存对话框
-	wxFileDialog saveDialog(this, "Save File", "", "", "Binary Files (*.bin)|*.txt", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-	if (saveDialog.ShowModal() == wxID_CANCEL) {
-		return; // 用户取消
-	}
-	// 获取用户选择的文件路径
-	wxString filePath = saveDialog.GetPath();
-	//------------写入文件-------------
-	std::string filePathStd = filePath.ToStdString();
-	std::ofstream outputFile(filePathStd , std::ios::binary); // 打开输出文件
-	if(wxTostdData.empty()) 
+	//socket->Connect(addr);
+	////发送指令command
+	//socket->Write(command, strlen(command));
+	//
+	//char buf[2040] = { 0 };
+	//socket->Read(buf, sizeof(buf));
+	//socket->Destroy();
+	////wxString test(buf);
+	////wxMessageBox(test);
+	//std::string wxTostdData(buf);
+	//-------------------------http协议-------------------------
+	httplib::Client cli("localhost", 1234);
+	auto res = cli.Get("/DownloadVersion/" + command);
+	if (res && res->status == 200)
 	{
-		wxLogError("Can not recive File");
-		return ;
+		wxFileDialog saveDialog(this, "Save File" , "",command, "Binary Files(*.bin) | *.txt", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+		if (saveDialog.ShowModal() == wxID_CANCEL) {
+			return; 
+		}
+		// 获取用户选择的文件路径
+		wxString filePath = saveDialog.GetPath();
+		//------------写入文件-------------
+		std::ofstream file(filePath.ToStdString(), std::ios::binary);
+		if (!file.is_open())
+		{
+			wxLogError("Can not open file");
+            return;
+		}
+		else
+		{
+			file << res->body;
+			if (file.fail())
+			{
+				wxLogError("File write error");
+                return;
+			}
+            file.close();
+		}
 	}
-	if(!outputFile) 
+	else
 	{
-		wxLogError("Can not open File");
-		return ;
+		char flag[4] = "000";
+		itoa(res->status,flag,10);
+		wxString wxflag(flag);
+		wxLogError("Download failed\nStatus:"+wxflag);
 	}
-	outputFile.write(buf,sizeof(buf));
-	if (outputFile.fail()) {
-		wxLogError("File write error");
-		return ;
-	}
-	outputFile.close();
-
+	cli.stop();
+	////——————————————————————————————————————————
+	//////-------------打开文件夹----------
+ //   // 弹出保存对话框
+	//wxFileDialog saveDialog(this, "Save File", "", "", "Binary Files (*.bin)|*.txt", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+	//if (saveDialog.ShowModal() == wxID_CANCEL) {
+	//	return; // 用户取消
+	//}
+	//// 获取用户选择的文件路径
+	//wxString filePath = saveDialog.GetPath();
+	////------------写入文件-------------
+	//std::string filePathStd = filePath.ToStdString();
+	//std::ofstream outputFile(filePathStd , std::ios::binary); // 打开输出文件
+	//if(wxTostdData.empty()) 
+	//{
+	//	wxLogError("Can not recive File");
+	//	return ;
+	//}
+	//if(!outputFile) 
+	//{
+	//	wxLogError("Can not open File");
+	//	return ;
+	//}
+	//outputFile.write(buf,sizeof(buf));
+	//if (outputFile.fail()) {
+	//	wxLogError("File write error");
+	//	return ;
+	//}
+	//outputFile.close();
 }
 void FirmwareGUI::OnradioChoiseVersion(wxCommandEvent& event)
 {
 	//参数1预留（随便填），参数2为固件版本号
-	Download(1, event.GetString());
+	std::string version = event.GetString().ToStdString();
+	Download(1, version);
 	event.Skip();
 }
 void FirmwareGUI::OnradioChoiseVersion_breath(wxCommandEvent& event)
@@ -503,28 +542,32 @@ std::vector<wxString> FirmwareGUI::GetSerialPortNames(void)
 	return portNames;
 }
 void FirmwareGUI::QueryFirmwareVersion_http(wxCommandEvent& event)
-{
+{	
+	cJSON* Root = NULL;
 	//-----------------------Http-------------------------------
-	wxURL url("https://echo.free.beeceptor.com");
-	if (url.GetError() != wxURL_NOERR)
-    {
-	    wxLogError("can not access");
-	    return;
-	}
-	wxInputStream* InStream = url.GetInputStream();
-	if (!InStream)
-	 {
-	     wxLogError("Failed to connect server!\nPlease check your network connection!");
-	     return;
-	 }
-	    //接受缓存
-	wxString wxReceiData;
-	char Buffer[4024];
-	while (! InStream->Read(Buffer, sizeof(Buffer)))
+	httplib::Client cli("localhost", 1234);
+	httplib::Result res = cli.Get("/GetFunctionVersions");
+	if (res && res->status == 200)
 	{
-	    wxReceiData += wxString(Buffer, InStream->LastRead());
+		//wxMessageBox(wxString(res->body.c_str()), "Firmware Version", wxOK | wxICON_INFORMATION, this);
+		Root = cJSON_Parse(res->body.c_str());
 	}
-	std::string wxTostdData = wxReceiData.ToStdString();
+	else
+	{
+        wxLogError("Fail to get version!");
+		return;
+	}
+	cli.stop();
+	//无效
+	/*httplib::Headers header = { {"Content-Length","100"} };
+	httplib::Params param = {{"key","value"}};
+	httplib::Result res1 = cli.Post("/body-header-param", header, param);
+	if (res1 && res1->status == 200)
+	{
+		wxMessageBox("ok");
+        wxMessageBox(wxString(res1->body.c_str()), "Firmware Version", wxOK | wxICON_INFORMATION, this);
+	}*/
+
 
 	
 #ifdef DEBUG_MODE
@@ -562,17 +605,9 @@ void FirmwareGUI::QueryFirmwareVersion_http(wxCommandEvent& event)
 	outputFile.close();
 
 #endif
-	std::string wxTostdData1(Buffer);
-	if (wxTostdData1.empty())
-	{
-		wxLogError("Fail receive data!");
-		return;
-	}
+
 	//——————————————————————————————————————————
 	//------------------解析Json数据------------------------
-	std::string str = "praise";
-	cJSON* Root;
-	Root = cJSON_Parse(Buffer);
 	if (!cJSON_IsInvalid(Root))
 	{
 		/*
@@ -813,6 +848,7 @@ int FirmwareGUI::CountNonemptyStrings(wxString array[], int size)
 	}
 	return count;
 }
+
 void FirmwareGUI::Sizer_network(wxWindow* myparent, std::vector<std::vector<wxString>>& versions)
 {
 	wxBoxSizer* bSizer_TopTop;

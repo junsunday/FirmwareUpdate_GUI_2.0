@@ -144,6 +144,7 @@
   <ItemGroup>
     <ClInclude Include="cJSON.h" />
     <ClInclude Include="cJSON_Utils.h" />
+    <ClInclude Include="httplib.h" />
     <ClInclude Include="serialib.h" />
   </ItemGroup>
   <ItemGroup>
