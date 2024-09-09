@@ -15,7 +15,7 @@
 #include <Setupapi.h>
 
 
-#define	self 1
+#define	self 1 //if 1 self debug 
 //#define DEBUG_MODE
 //------------TCP协议(IP & PORT)--------------
 #if self
@@ -25,7 +25,7 @@
 
 #else
 
-#define IP  "9tv5583978sv.vicp.fun"//"192.168.10.8"//"8.135.10.183"
+#define IP  "9tv5583978sv.vicp.fun"
 #define PROT 30087//1111
 
 #endif // self debug
@@ -58,7 +58,6 @@ private:
 	void QueryFirmwareVersion_http(wxCommandEvent& event);
 	void QueryFirmwareVersion(wxCommandEvent& event);
 	void Sizer_network(wxWindow* myparent, std::vector<std::vector<wxString>>& versions);
-	//void Sizer_network(wxWindow* myparent,wxString* radioBox_breathChoices, wxString* radioBox_heightChoices, wxString* radioBox_humanChoices);
 	void Sizer_current(wxWindow* myparent);
 	void Sizer_loadBurn(wxWindow* myparent);
 	void Ondownload_breath(wxCommandEvent& event);
@@ -77,30 +76,14 @@ private:
 	//wxDialog* ChoiseDialog;
 	//Network path
 	virtual void OnradioChoiseVersion(wxCommandEvent& event);
-	virtual void OnradioChoiseVersion_breath(wxCommandEvent& event);
-	virtual void OnradioChoiseVersion_height(wxCommandEvent& event);
-	virtual void OnradioChoiseVersion_human(wxCommandEvent& event);
 	virtual void Oncancel_dialog(wxCommandEvent& event);
 	virtual void Onyes_dialog(wxCommandEvent& event);
 	void Download(int n,const std::string& command);
 	int CountNonemptyStrings(wxString array[], int size);
 
-	//wxRadioBox* m_radioBox_breath;
-	//wxRadioBox* m_radioBox_height;
-	//wxRadioBox* m_radioBox_human;
-
 	wxButton* button_yes_dialog;
 	wxButton* button_cancel_dialog;
 
-//#define Size_radioBoxChoies 6
-//	std::string versions_breath;
-//	std::string versions_height;
-//	std::string versions_human;
-//
-//	wxString m_radioBox_breathChoices[Size_radioBoxChoies] = { "默认版本" };
-//	wxString m_radioBox_heightChoices[Size_radioBoxChoies] = { "默认版本" };
-//	wxString m_radioBox_humanChoices[Size_radioBoxChoies] = { "默认版本" };
-	//Current path
 	virtual void OnserachCurrent(wxCommandEvent& event);
 	virtual void OnComboBoxDropdown_serial(wxCommandEvent& event);
 	std::vector<wxString> GetSerialPortNames(void);
@@ -147,16 +130,6 @@ FirmwareGUI::FirmwareGUI(const wxString& title) : wxFrame(NULL, wxID_ANY, title,
 	m_panel_load = new wxPanel(m_listbook1, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL);
 	Sizer_loadBurn(m_panel_load);
 	m_listbook1->AddPage(m_panel_load, _("烧录"), false);
-
-#ifdef __WXGTK__ // Small icon style not supported in GTK
-	wxListView* m_listbook1ListView = m_listbook1->GetListView();
-	long m_listbook1Flags = m_listbook1ListView->GetWindowStyleFlag();
-	if (m_listbook1Flags & wxLC_SMALL_ICON)
-	{
-		m_listbook1Flags = (m_listbook1Flags & ~wxLC_SMALL_ICON) | wxLC_ICON;
-	}
-	m_listbook1ListView->SetWindowStyleFlag(m_listbook1Flags);
-#endif
 
 	bSizer_frame_Top->Add(m_listbook1, 1, wxEXPAND | wxALL, 5);
 
@@ -239,7 +212,7 @@ void FirmwareGUI::Download(int n,const std::string& command)
 	//std::string wxTostdData(buf);
 	//-------------------------http协议-------------------------
 	httplib::Client cli("localhost", 1234);
-	auto res = cli.Get("/DownloadVersion/" + command);
+	auto res = cli.Post("/DownloadVersion/" + command);
 	if (res && res->status == 200)
 	{
 		wxFileDialog saveDialog(this, "Save File" , "",command, "Binary Files(*.bin) | *.txt", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
@@ -274,137 +247,18 @@ void FirmwareGUI::Download(int n,const std::string& command)
 		wxLogError("Download failed\nStatus:"+wxflag);
 	}
 	cli.stop();
-	////——————————————————————————————————————————
-	//////-------------打开文件夹----------
- //   // 弹出保存对话框
-	//wxFileDialog saveDialog(this, "Save File", "", "", "Binary Files (*.bin)|*.txt", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-	//if (saveDialog.ShowModal() == wxID_CANCEL) {
-	//	return; // 用户取消
-	//}
-	//// 获取用户选择的文件路径
-	//wxString filePath = saveDialog.GetPath();
-	////------------写入文件-------------
-	//std::string filePathStd = filePath.ToStdString();
-	//std::ofstream outputFile(filePathStd , std::ios::binary); // 打开输出文件
-	//if(wxTostdData.empty()) 
-	//{
-	//	wxLogError("Can not recive File");
-	//	return ;
-	//}
-	//if(!outputFile) 
-	//{
-	//	wxLogError("Can not open File");
-	//	return ;
-	//}
-	//outputFile.write(buf,sizeof(buf));
-	//if (outputFile.fail()) {
-	//	wxLogError("File write error");
-	//	return ;
-	//}
-	//outputFile.close();
 }
 void FirmwareGUI::OnradioChoiseVersion(wxCommandEvent& event)
 {
 	//参数1预留（随便填），参数2为固件版本号
 	std::string version = event.GetString().ToStdString();
-	Download(1, version);
+	if (version != "_Default")
+	{
+		Download(1, version);
+	}
 	event.Skip();
 }
-void FirmwareGUI::OnradioChoiseVersion_breath(wxCommandEvent& event)
-{
-	switch (event.GetSelection())
-	{
-	
-	case 1:	
-		//请求下载固件
-		Download(1, "breath1.1");
-		wxMessageBox(wxT("this is 1.0 and done!"), wxT("breath固件"), wxOK | wxICON_INFORMATION, this);
-		break;
-	case 2:
-		//请求下载固件
-		Download(2, "breath2.0");
-		wxMessageBox(wxT("this is 2.0 and done!"), wxT("breath固件"), wxOK | wxICON_INFORMATION, this);
-		break;
-	case 3:
-		//请求下载固件
-		Download(3, "breath_3_0");
-		wxMessageBox(wxT("this is 3.0 and done!"), wxT("breath固件"), wxOK | wxICON_INFORMATION, this);
-		break;
-	case 4:
-		//请求下载固件
-		Download(4, "breath_4_0");
-		wxMessageBox(wxT("this is 4.0 and done!"), wxT("breath固件"), wxOK | wxICON_INFORMATION, this);
-		break;
-	default:
-		break;
-	}
-	
-	event.Skip();
-}
-void FirmwareGUI::OnradioChoiseVersion_height(wxCommandEvent& event)
-{	
-	//event --> 已绑定事件 
-	switch (event.GetSelection())
-	{
-	
-	case 1:
-		//请求下载固件
-		Download(1, "height_1_0_bin");
-		wxMessageBox(wxT("this is 1.0 and done!"), wxT("height固件"), wxOK | wxICON_INFORMATION, this);
-		break;
-	case 2:
-		//请求下载固件
-		Download(2, "height_2_0_bin");
-		wxMessageBox(wxT("this is 2.0 and done!"), wxT("height固件"), wxOK | wxICON_INFORMATION, this);
-		break;
-	case 3:
-		//请求下载固件
-		Download(3, "height_3_0_bin");
-		wxMessageBox(wxT("this is 3.0 and done!"), wxT("height固件"), wxOK | wxICON_INFORMATION, this);
-		break;
-	case 4:
-		//请求下载固件
-		Download(4, "height_4_0_bin");
-		wxMessageBox(wxT("this is 4.0 and done!"), wxT("height固件"), wxOK | wxICON_INFORMATION, this);
-		break;
-	default:
-		break;
-	}
 
-	event.Skip();
-}
-void FirmwareGUI::OnradioChoiseVersion_human(wxCommandEvent& event)
-{
-	switch (event.GetSelection())
-	{
-	
-		
-	case 1:
-		//请求下载固件
-		Download(1, "human_1_0_bin");
-		wxMessageBox(wxT("this is 1.0 and done!"), wxT("human固件"), wxOK | wxICON_INFORMATION, this);
-		break;
-	case 2:
-		//请求下载固件
-		Download(2, "human_2_0_bin");
-		wxMessageBox(wxT("this is 2.0 and done!"), wxT("human固件"), wxOK | wxICON_INFORMATION, this);
-		break;
-	case 3:
-		//请求下载固件
-		Download(3, "human_3_0_bin");
-		wxMessageBox(wxT("this is 3.0 and done!"), wxT("human固件"), wxOK | wxICON_INFORMATION, this);
-		break;
-	case 4:
-		//请求下载固件
-		Download(4, "human_4_0_bin");
-		wxMessageBox(wxT("this is 4.0 and done!"), wxT("human固件"), wxOK | wxICON_INFORMATION, this);
-		break;
-	default :
-		break;
-	}
-
-	event.Skip();
-}
 void FirmwareGUI::Onyes_dialog(wxCommandEvent& event)
 {
 	//ChoiseDialog->Destroy();
@@ -558,18 +412,6 @@ void FirmwareGUI::QueryFirmwareVersion_http(wxCommandEvent& event)
 		return;
 	}
 	cli.stop();
-	//无效
-	/*httplib::Headers header = { {"Content-Length","100"} };
-	httplib::Params param = {{"key","value"}};
-	httplib::Result res1 = cli.Post("/body-header-param", header, param);
-	if (res1 && res1->status == 200)
-	{
-		wxMessageBox("ok");
-        wxMessageBox(wxString(res1->body.c_str()), "Firmware Version", wxOK | wxICON_INFORMATION, this);
-	}*/
-
-
-	
 #ifdef DEBUG_MODE
 	wxString test(Buffer);
 	wxMessageBox(wxReceiData, "Origin recveie data");
@@ -901,103 +743,7 @@ void FirmwareGUI::Sizer_network(wxWindow* myparent, std::vector<std::vector<wxSt
 	button_cancel_dialog->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(FirmwareGUI::Oncancel_dialog), NULL, this);
 
 }
-//old version
-//void FirmwareGUI::Sizer_network(wxWindow* myparent,wxString* radioBox_breathChoices, wxString* radioBox_heightChoices, wxString* radioBox_humanChoices)
-//{
-//	
-//	wxBoxSizer* bSizer_TopTop;
-//	bSizer_TopTop = new wxBoxSizer(wxVERTICAL);
-//
-//	wxScrolledWindow* m_scrolledWindow = new wxScrolledWindow(myparent, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxHSCROLL | wxVSCROLL);
-//	m_scrolledWindow->SetScrollRate(5, 5);
-//
-//	wxBoxSizer* bSizer_Top;
-//	bSizer_Top = new wxBoxSizer(wxVERTICAL);
-//	
-//	
-//	//---------------------------------------------------------------------------------------
-//	wxBoxSizer* bSizer_breath;
-//	bSizer_breath = new wxBoxSizer(wxHORIZONTAL);
-//
-//	wxStaticBoxSizer* sbSizer_breath;
-//	sbSizer_breath = new wxStaticBoxSizer(new wxStaticBox(m_scrolledWindow, wxID_ANY, _("Breath")), wxHORIZONTAL);
-//
-//	wxStaticText* m_staticText_breath;
-//	m_staticText_breath = new wxStaticText(sbSizer_breath->GetStaticBox(), wxID_ANY, _("Version:"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER_HORIZONTAL | wxALIGN_RIGHT | wxST_ELLIPSIZE_END);
-//	m_staticText_breath->Wrap(-1);
-//	sbSizer_breath->Add(m_staticText_breath, 0, wxALL, 5);
-//
-//	int m_radioBox_breathNChoices = CountNonemptyStrings(radioBox_breathChoices, Size_radioBoxChoies);
-//	m_radioBox_breath = new wxRadioBox(sbSizer_breath->GetStaticBox(), wxID_ANY, _("Bin"), wxDefaultPosition, wxDefaultSize, m_radioBox_breathNChoices, radioBox_breathChoices, 1, wxRA_SPECIFY_ROWS);
-//	m_radioBox_breath->SetSelection(0);
-//	sbSizer_breath->Add(m_radioBox_breath, 0, wxALL, 5);
-//	bSizer_breath->Add(sbSizer_breath, 1, wxEXPAND, 5);
-//	bSizer_Top->Add(bSizer_breath, 1, wxEXPAND, 5);
-//	//--------------------------------------------------------------------------------------
-//
-//	wxBoxSizer* bSizer_height;
-//	bSizer_height = new wxBoxSizer(wxHORIZONTAL);
-//
-//	wxStaticBoxSizer* sbSizer_height;
-//	sbSizer_height = new wxStaticBoxSizer(new wxStaticBox(m_scrolledWindow, wxID_ANY, _("Height")), wxHORIZONTAL);
-//
-//	wxStaticText* m_staticText_height;
-//	m_staticText_height = new wxStaticText(sbSizer_height->GetStaticBox(), wxID_ANY, _("Version:"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER_HORIZONTAL | wxALIGN_RIGHT | wxST_ELLIPSIZE_END);
-//	m_staticText_height->Wrap(-1);
-//	sbSizer_height->Add(m_staticText_height, 0, wxALL, 5);
-//	
-//	int m_radioBox_heightNChoices = CountNonemptyStrings(radioBox_heightChoices, Size_radioBoxChoies);
-//	m_radioBox_height = new wxRadioBox(sbSizer_height->GetStaticBox(), wxID_ANY, _("Bin"), wxDefaultPosition, wxDefaultSize, m_radioBox_heightNChoices, radioBox_heightChoices, 1, wxRA_SPECIFY_ROWS);
-//	m_radioBox_height->SetSelection(0);
-//	sbSizer_height->Add(m_radioBox_height, 0, wxALL, 5);
-//	bSizer_height->Add(sbSizer_height, 1, wxEXPAND, 5);
-//	bSizer_Top->Add(bSizer_height, 1, wxEXPAND, 5);
-//
-//	wxBoxSizer* bSizer_human;
-//	bSizer_human = new wxBoxSizer(wxHORIZONTAL);
-//
-//	wxStaticBoxSizer* sbSizer_human;
-//	sbSizer_human = new wxStaticBoxSizer(new wxStaticBox(m_scrolledWindow, wxID_ANY, _("Human")), wxHORIZONTAL);
-//	wxStaticText* m_staticText_human;
-//	m_staticText_human = new wxStaticText(sbSizer_human->GetStaticBox(), wxID_ANY, _("Version:"), wxDefaultPosition, wxDefaultSize, wxALIGN_CENTER_HORIZONTAL | wxALIGN_RIGHT | wxST_ELLIPSIZE_END);
-//	m_staticText_human->Wrap(-1);
-//	sbSizer_human->Add(m_staticText_human, 0, wxALL, 5);
-//
-//	int m_radioBox_humanNChoices = CountNonemptyStrings(radioBox_humanChoices, Size_radioBoxChoies);
-//	m_radioBox_human = new wxRadioBox(sbSizer_human->GetStaticBox(), wxID_ANY, _("Bin"), wxDefaultPosition, wxDefaultSize, m_radioBox_humanNChoices, radioBox_humanChoices, 1, wxRA_SPECIFY_ROWS);
-//	m_radioBox_human->SetSelection(0);
-//	sbSizer_human->Add(m_radioBox_human, 0, wxALL, 5);
-//	bSizer_human->Add(sbSizer_human, 1, wxEXPAND, 5);
-//	bSizer_Top->Add(bSizer_human, 1, wxEXPAND, 5);
-//
-//	wxBoxSizer* bSizer_save;
-//	bSizer_save = new wxBoxSizer(wxHORIZONTAL);
-//	bSizer_save->Add(0, 0, 1, wxEXPAND, 5);
-//
-//	button_yes_dialog = new wxButton(m_scrolledWindow, wxID_OK, _("确定"), wxDefaultPosition, wxDefaultSize, 0);
-//	bSizer_save->Add(button_yes_dialog, 0, wxALL, 5);
-//
-//	button_cancel_dialog = new wxButton(m_scrolledWindow, wxID_CANCEL, _("取消"), wxDefaultPosition, wxDefaultSize, 0);
-//	bSizer_save->Add(button_cancel_dialog, 0, wxALL, 5);
-//	//添加spacer控件
-//	bSizer_Top->Add(bSizer_save, 1, wxEXPAND, 5);
-//
-//	m_scrolledWindow->SetSizer(bSizer_Top);
-//	m_scrolledWindow->Layout();
-//	bSizer_Top->Fit(m_scrolledWindow);
-//	bSizer_TopTop->Add(m_scrolledWindow, 1, wxEXPAND | wxALL, 5);
-//
-//	myparent->SetSizer(bSizer_TopTop);
-//	myparent->Layout();
-//
-//	// Connect Events
-//	m_radioBox_breath->Connect(wxEVT_COMMAND_RADIOBOX_SELECTED, wxCommandEventHandler(FirmwareGUI::OnradioChoiseVersion_breath),NULL,this);
-//	m_radioBox_height->Connect(wxEVT_COMMAND_RADIOBOX_SELECTED, wxCommandEventHandler(FirmwareGUI::OnradioChoiseVersion_height), NULL, this);
-//	m_radioBox_human->Connect(wxEVT_COMMAND_RADIOBOX_SELECTED, wxCommandEventHandler(FirmwareGUI::OnradioChoiseVersion_human), NULL, this);
-//	button_yes_dialog->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(FirmwareGUI::Onyes_dialog), NULL, this);
-//	button_cancel_dialog->Connect(wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler(FirmwareGUI::Oncancel_dialog), NULL, this);
-//	
-//}
+
 void FirmwareGUI::Sizer_current(wxWindow* myparent)
 {
 	wxBoxSizer* bSizer_current_Top;
